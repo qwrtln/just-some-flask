@@ -1,8 +1,23 @@
-from flask import Flask, jsonify, request, Response
+from typing import Any, Dict, List
+
+from flask import Flask, Response, jsonify, render_template, request
 
 app = Flask(__name__)
 
-stores = [{"name": "My Store", "items": [{"name": "Book", "price": 17.00}]}]
+stores: List[Dict[str, Any]] = [
+    {
+        "name": "My Store",
+        "items": [
+            {"name": "Book", "price": 17.00},
+            {"name": "Chair", "price": 97.70},
+        ],
+    }
+]
+
+
+@app.route("/")
+def home():
+    return render_template("index.html")
 
 
 # POST /store data: {name:}
@@ -39,7 +54,7 @@ def get_store(name: str):
 
 
 # GET /stores
-@app.route("/stores")
+@app.route("/store")
 def get_stores():
     return jsonify({"stores": stores})
 
