@@ -1,8 +1,8 @@
 import sqlite3
 from typing import Any, Dict, Tuple, Optional
 
-from flask_jwt import jwt_required  # type: ignore
-from flask_restful import Resource, reqparse  # type: ignore
+from flask_jwt import jwt_required
+from flask_restful import Resource, reqparse
 
 
 class Item(Resource):

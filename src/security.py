@@ -1,8 +1,8 @@
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from werkzeug.security import safe_str_cmp
 
-from user import User
+from models.user import User
 
 
 def authenitcate(email: str, password: str) -> Optional[User]:

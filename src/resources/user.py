@@ -1,41 +1,10 @@
-from __future__ import annotations
-
 import re
 import sqlite3
-from typing import Dict, Optional, Tuple
+from typing import Dict, Tuple
 
-from flask_restful import Resource, reqparse  # type: ignore
+from flask_restful import Resource, reqparse
 
-
-class User:
-    def __init__(self, _id: int, email: str, password: str) -> None:
-        self.id = _id
-        self.email = email
-        self.password = password
-
-    @classmethod
-    def find_by_email(cls, email: str) -> Optional[User]:
-        connection = sqlite3.connect("data.db")
-        cursor = connection.cursor()
-
-        query = "SELECT * FROM users WHERE email=?"
-        result = cursor.execute(query, (email,))
-        row = result.fetchone()
-        connection.close()
-
-        return cls(*row) if row else None
-
-    @classmethod
-    def find_by_id(cls, _id: str) -> Optional[User]:
-        connection = sqlite3.connect("data.db")
-        cursor = connection.cursor()
-
-        query = "SELECT * FROM users WHERE id=?"
-        result = cursor.execute(query, (_id,))
-        row = result.fetchone()
-        connection.close()
-
-        return cls(*row) if row else None
+from models.user import User
 
 
 class UserRegister(Resource):
