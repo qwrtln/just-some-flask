@@ -1,16 +1,8 @@
-from typing import Any, Dict, List, Tuple
+import sqlite3
+from typing import Any, Dict, List, Tuple, Optional
 
-from flask import Flask, request
-from flask_jwt import JWT, jwt_required  # type: ignore
-from flask_restful import Api, Resource, reqparse  # type: ignore
-
-from security import authenitcate, identity
-
-app = Flask(__name__)
-app.secret_key = "snake jazz"
-api = Api(app)
-
-jwt = JWT(app, authenitcate, identity)  # /auth
+from flask_jwt import jwt_required  # type: ignore
+from flask_restful import Resource, reqparse  # type: ignore
 
 items: List[Dict[str, Any]] = []
 
@@ -22,9 +14,17 @@ class Item(Resource):
     )
 
     @jwt_required()
-    def get(self, name: str) -> Tuple[Dict[str, Any], int]:
-        item = next(filter(lambda x: x["name"] == name, items), None)
-        return {"item": item}, 200 if item else 404
+    def get(self, name: str) -> Optional[Tuple[Dict[str, Any], int]]:
+        connection = sqlite3.connect("data.db")
+        cursor = connection.cursor()
+
+        query = "SELECT * FROM ITEMS WHERE name=?"
+        result = cursor.execute(query, (name,))
+        row = result.fetchone()
+
+        if row:
+            return {"item": row[0], "price": row[1]}, 200
+        return {"message": "Item not found."}, 404
 
     def post(self, name: str) -> Tuple[Dict[str, Any], int]:
         data = Item.parser.parse_args()
@@ -56,11 +56,3 @@ class Item(Resource):
 class ItemList(Resource):
     def get(self):
         return {"items": items}
-
-
-api.add_resource(Item, "/item/<string:name>")
-api.add_resource(ItemList, "/items")
-
-
-if __name__ == "__main__":
-    app.run(port=5000, debug=True)
