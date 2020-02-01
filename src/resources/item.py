@@ -1,8 +1,10 @@
 import sqlite3
-from typing import Any, Dict, Tuple, Optional
+from typing import Any, Dict, Tuple, List
 
 from flask_jwt import jwt_required
 from flask_restful import Resource, reqparse
+
+from models.item import ItemModel
 
 
 class Item(Resource):
@@ -11,65 +13,34 @@ class Item(Resource):
         "price", type=float, required=True, help="This field cannot be left blank.",
     )
 
-    @classmethod
-    def find_item_by_name(cls, name: str) -> Optional[Dict[str, Any]]:
-        connection = sqlite3.connect("data.db")
-        cursor = connection.cursor()
-
-        query = "SELECT * FROM items WHERE name=?"
-        result = cursor.execute(query, (name,))
-        if row := result.fetchone():
-            connection.close()
-            return {"name": row[0], "price": row[1]}
-        return None
-
-    @classmethod
-    def insert_item(cls, item: dict) -> None:
-        connection = sqlite3.connect("data.db")
-        cursor = connection.cursor()
-
-        query = "INSERT INTO items VALUES (?, ?)"
-        cursor.execute(query, (item["name"], item["price"]))
-
-        connection.commit()
-        connection.close()
-
-    @classmethod
-    def update_item(cls, item: dict) -> None:
-        connection = sqlite3.connect("data.db")
-        cursor = connection.cursor()
-
-        query = "UPDATE items SET price=? WHERE name=?"
-        cursor.execute(query, (item["price"], item["name"]))
-
-        connection.commit()
-        connection.close()
-
+    @staticmethod
     @jwt_required()
-    def get(self, name: str) -> Tuple[Dict[str, Any], int]:
-        if item := self.find_item_by_name(name):
-            return item, 200  # type: ignore
+    def get(name: str) -> Tuple[Dict[str, Any], int]:
+        if item := ItemModel.find_by_name(name):
+            return item.json(), 200  # type: ignore
         return {"message": "Item not found."}, 404
 
-    def post(self, name: str) -> Tuple[Dict[str, Any], int]:
-        if self.find_item_by_name(name):
+    @staticmethod
+    def post(name: str) -> Tuple[Dict[str, Any], int]:
+        if ItemModel.find_by_name(name):
             return (
                 {"message": f"An item with a name '{name}' already exists."},
                 400,
             )
 
         data = Item.parser.parse_args()
-        item = {"name": name, "price": data["price"]}
+        item = ItemModel(name, data["price"])
 
         try:
-            self.insert_item(item)
+            item.insert()
         except sqlite3.OperationalError as error:
-            return {"message": f"Couldnt create item: {error}"}, 500
+            return {"message": f"Couldn't create item: {error}"}, 500
 
-        return item, 201
+        return item.json(), 201
 
-    def delete(self, name: str) -> Tuple[Dict[str, str], int]:
-        if self.find_item_by_name(name):
+    @staticmethod
+    def delete(name: str) -> Tuple[Dict[str, str], int]:
+        if ItemModel.find_by_name(name):
             connection = sqlite3.connect("data.db")
             cursor = connection.cursor()
 
@@ -81,33 +52,35 @@ class Item(Resource):
             return {"message": "Item deleted."}, 200
         return {"message": "Item not found."}, 404
 
-    def put(self, name: str) -> Tuple[Dict[str, Any], int]:
+    @staticmethod
+    def put(name: str) -> Tuple[Dict[str, Any], int]:
         data = Item.parser.parse_args()
-        item = self.find_item_by_name(name)
+        item = ItemModel.find_by_name(name)
         if item is None:
-            item = {"name": name, "price": data["price"]}
+            item = ItemModel(name, data["price"])
             try:
-                self.insert_item(item)
+                item.insert()
             except sqlite3.OperationalError:
                 return {"message": "An error has occurred."}, 500
-            return item, 201
+            return item.json(), 201
 
-        updated_item = {"name": name, "price": data["price"]}
+        updated_item = ItemModel(name, data["price"])
         try:
-            self.update_item(updated_item)
+            updated_item.update()
         except sqlite3.OperationalError:
             return {"message": "An error has occurred."}, 500
-        return updated_item, 200
+        return updated_item.json(), 200
 
 
 class ItemList(Resource):
-    def get(self) -> Tuple[Dict[str, Any], int]:
+    @staticmethod
+    def get() -> Tuple[Dict[str, List[Dict[str, Any]]], int]:
         connection = sqlite3.connect("data.db")
         cursor = connection.cursor()
 
         query = "SELECT * FROM items"
         result = cursor.execute(query)
-        items = [{"name": item[0], "price": item[1]} for item in result.fetchall()]
+        items = [ItemModel(*item).json() for item in result.fetchall()]
 
         connection.close()
 

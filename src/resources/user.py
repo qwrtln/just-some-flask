@@ -4,7 +4,7 @@ from typing import Dict, Tuple
 
 from flask_restful import Resource, reqparse
 
-from models.user import User
+from models.user import UserModel
 
 
 class UserRegister(Resource):
@@ -23,7 +23,7 @@ class UserRegister(Resource):
         email = data["email"]
         if not self.email_regex.match(email):
             return {"message": "User name must be an e-mail address."}, 400
-        if User.find_by_email(email):
+        if UserModel.find_by_email(email):
             return {"message": "A user with that e-mail address already exists."}, 409
 
         connection = sqlite3.connect("data.db")

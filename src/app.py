@@ -8,7 +8,7 @@ from flask_restful import Api
 from resources.item import Item, ItemList
 from security import authenitcate, identity
 from resources.user import UserRegister
-from models.user import User
+from models.user import UserModel
 
 app = Flask(__name__)
 app.secret_key = "snake jazz"
@@ -24,7 +24,7 @@ jwt = JWT(app, authenitcate, identity)
 
 
 @jwt.auth_response_handler
-def customized_response_handler(access_token: bytes, identity_: User) -> Any:
+def customized_response_handler(access_token: bytes, identity_: UserModel) -> Any:
     return jsonify(
         {"access_token": access_token.decode("utf-8"), "user_id": identity_.id}
     )
