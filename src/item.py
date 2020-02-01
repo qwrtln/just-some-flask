@@ -16,9 +16,10 @@ class Item(Resource):
         connection = sqlite3.connect("data.db")
         cursor = connection.cursor()
 
-        query = "SELECT * FROM ITEMS WHERE name=?"
+        query = "SELECT * FROM items WHERE name=?"
         result = cursor.execute(query, (name,))
         if row := result.fetchone():
+            connection.close()
             return {"name": row[0], "price": row[1]}
         return None
 
@@ -100,5 +101,14 @@ class Item(Resource):
 
 
 class ItemList(Resource):
-    def get(self):
-        return {"items": items}
+    def get(self) -> Tuple[Dict[str, Any], int]:
+        connection = sqlite3.connect("data.db")
+        cursor = connection.cursor()
+
+        query = "SELECT * FROM items"
+        result = cursor.execute(query)
+        items = [{"name": item[0], "price": item[1]} for item in result.fetchall()]
+
+        connection.close()
+
+        return {"items": items}, 200
