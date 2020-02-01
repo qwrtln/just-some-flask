@@ -4,6 +4,7 @@ from typing import Any, Dict
 from flask import Flask, jsonify
 from flask_jwt import JWT  # type: ignore
 from flask_restful import Api  # type: ignore
+
 from item import Item, ItemList
 from security import authenitcate, identity
 from user import User, UserRegister

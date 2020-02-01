@@ -39,7 +39,7 @@ class User:
 
 
 class UserRegister(Resource):
-    email_regex = re.compile("[^@]+@[^@]+\.[^@]+")
+    email_regex = re.compile(r"[^@]+@[^@]+\.[^@]+")
     parser = reqparse.RequestParser()
     parser.add_argument(
         "email", type=str, required=True, help="This field cannot be left blank.",
