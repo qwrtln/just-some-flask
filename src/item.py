@@ -14,27 +14,41 @@ class Item(Resource):
     )
 
     @jwt_required()
-    def get(self, name: str) -> Optional[Tuple[Dict[str, Any], int]]:
+    def get(self, name: str) -> Tuple[Dict[str, Any], int]:
+        if item := self.find_item_by_name(name):
+            return item, 200  # type: ignore
+        return {"message": "Item not found."}, 404
+
+    @classmethod
+    def find_item_by_name(cls, name: str) -> Optional[Dict[str, Any]]:
         connection = sqlite3.connect("data.db")
         cursor = connection.cursor()
 
         query = "SELECT * FROM ITEMS WHERE name=?"
         result = cursor.execute(query, (name,))
-        row = result.fetchone()
-
-        if row:
-            return {"item": row[0], "price": row[1]}, 200
-        return {"message": "Item not found."}, 404
+        if row := result.fetchone():
+            return {"item": {"name": row[0], "price": row[1]}}
+        return None
 
     def post(self, name: str) -> Tuple[Dict[str, Any], int]:
-        data = Item.parser.parse_args()
-        if next(filter(lambda x: x["name"] == name, items), None):
+        if self.find_item_by_name(name):
             return (
                 {"message": f"An item with a name '{name}' already exists."},
                 400,
             )
+
+        data = Item.parser.parse_args()
         item = {"name": name, "price": data["price"]}
-        items.append(item)
+
+        connection = sqlite3.connect("data.db")
+        cursor = connection.cursor()
+
+        query = "INSERT INTO items VALUES name=(?, ?)"
+        cursor.execute(query, (name, item["price"]))
+
+        connection.commit()
+        connection.close()
+
         return item, 201
 
     def delete(self, name: str) -> Dict[str, str]:
