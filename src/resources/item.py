@@ -32,12 +32,7 @@ class Item(Resource):
 
         data = Item.parser.parse_args()
         item = ItemModel(name, data["price"])
-
-        try:
-            item.save_to_db()
-        except sqlite3.OperationalError as error:
-            return {"message": f"Couldn't create item: {error}"}, 500
-
+        item.save_to_db()
         return item.json(), 201
 
     @staticmethod
@@ -53,6 +48,7 @@ class Item(Resource):
         item = ItemModel.find_by_name(name)
         if item is None:
             item = ItemModel(name, data["price"])
+            item.save_to_db()
             return item.json(), 200
         item.price = data["price"]
         item.save_to_db()
@@ -62,13 +58,4 @@ class Item(Resource):
 class ItemList(Resource):
     @staticmethod
     def get() -> Tuple[Dict[str, List[Dict[str, Any]]], int]:
-        connection = sqlite3.connect("data.db")
-        cursor = connection.cursor()
-
-        query = "SELECT * FROM items"
-        result = cursor.execute(query)
-        items = [ItemModel(*item).json() for item in result.fetchall()]
-
-        connection.close()
-
-        return {"items": items}, 200
+        return {"items": [item.json() for item in ItemModel.query.all()]}, 200
