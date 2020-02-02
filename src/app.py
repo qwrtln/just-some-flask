@@ -8,6 +8,7 @@ from flask_restful import Api
 from db import db
 from models.user import UserModel
 from resources.item import Item, ItemList
+from resources.store import Store, StoreList
 from resources.user import UserRegister
 from security import authenitcate, identity
 
@@ -41,6 +42,8 @@ def customized_response_handler(access_token: bytes, identity_: UserModel) -> An
 
 api.add_resource(Item, "/item/<string:name>")
 api.add_resource(ItemList, "/items")
+api.add_resource(Store, "/store/<string:name>")
+api.add_resource(StoreList, "/stores")
 api.add_resource(UserRegister, "/register")
 
 
