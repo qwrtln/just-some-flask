@@ -6,6 +6,8 @@ from flask_restful import Resource, reqparse
 
 from models.item import ItemModel
 
+ResponseType = Tuple[Dict[str, Any], int]
+
 
 class Item(Resource):
     parser = reqparse.RequestParser()
@@ -15,13 +17,13 @@ class Item(Resource):
 
     @staticmethod
     @jwt_required()
-    def get(name: str) -> Tuple[Dict[str, Any], int]:
+    def get(name: str) -> ResponseType:
         if item := ItemModel.find_by_name(name):
             return item.json(), 200  # type: ignore
         return {"message": "Item not found."}, 404
 
     @staticmethod
-    def post(name: str) -> Tuple[Dict[str, Any], int]:
+    def post(name: str) -> ResponseType:
         if ItemModel.find_by_name(name):
             return (
                 {"message": f"An item with a name '{name}' already exists."},
@@ -32,44 +34,29 @@ class Item(Resource):
         item = ItemModel(name, data["price"])
 
         try:
-            item.insert()
+            item.save_to_db()
         except sqlite3.OperationalError as error:
             return {"message": f"Couldn't create item: {error}"}, 500
 
         return item.json(), 201
 
     @staticmethod
-    def delete(name: str) -> Tuple[Dict[str, str], int]:
-        if ItemModel.find_by_name(name):
-            connection = sqlite3.connect("data.db")
-            cursor = connection.cursor()
-
-            query = "DELETE FROM items WHERE name=?"
-            cursor.execute(query, (name,))
-
-            connection.commit()
-            connection.close()
+    def delete(name: str) -> ResponseType:
+        if item := ItemModel.find_by_name(name):
+            item.delete_from_db()
             return {"message": "Item deleted."}, 200
         return {"message": "Item not found."}, 404
 
     @staticmethod
-    def put(name: str) -> Tuple[Dict[str, Any], int]:
+    def put(name: str) -> ResponseType:
         data = Item.parser.parse_args()
         item = ItemModel.find_by_name(name)
         if item is None:
             item = ItemModel(name, data["price"])
-            try:
-                item.insert()
-            except sqlite3.OperationalError:
-                return {"message": "An error has occurred."}, 500
-            return item.json(), 201
-
-        updated_item = ItemModel(name, data["price"])
-        try:
-            updated_item.update()
-        except sqlite3.OperationalError:
-            return {"message": "An error has occurred."}, 500
-        return updated_item.json(), 200
+            return item.json(), 200
+        item.price = data["price"]
+        item.save_to_db()
+        return item.json(), 200
 
 
 class ItemList(Resource):
