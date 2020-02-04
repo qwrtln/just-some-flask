@@ -19,11 +19,6 @@ app.secret_key = "snake jazz"
 api = Api(app)
 
 
-@app.before_first_request
-def create_tables() -> None:
-    db.create_all()
-
-
 app.config["JWT_AUTH_URL_RULE"] = "/login"
 # configure JWT to expire within half an hour
 app.config["JWT_EXPIRATION_DELTA"] = timedelta(seconds=60 * 30)
