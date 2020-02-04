@@ -17,7 +17,7 @@ class Store(Resource):
         return {"message": "Store not found."}, 404
 
     @classmethod
-    def put(cls, name) -> StoreResponseType:
+    def post(cls, name: str) -> StoreResponseType:
         if StoreModel.find_by_name(name):
             return {"message": f"Store '{name}' already exists."}, 409
         store = StoreModel(name)
@@ -28,7 +28,7 @@ class Store(Resource):
         return store.json(), 201
 
     @classmethod
-    def delete(cls, name) -> StoreResponseType:
+    def delete(cls, name: str) -> StoreResponseType:
         if store := StoreModel.find_by_name(name):
             store.delete_from_db()
         return {"message": "Store deleted."}, 200
@@ -37,4 +37,4 @@ class Store(Resource):
 class StoreList(Resource):
     @classmethod
     def get(cls) -> StoreResponseType:
-        return {"stores": [store.json() for store in StoreModel.query.all]}, 200
+        return {"stores": [store.json() for store in StoreModel.query.all()]}, 200

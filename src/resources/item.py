@@ -22,7 +22,7 @@ class Item(Resource):
     @jwt_required()
     def get(name: str) -> ResponseType:
         if item := ItemModel.find_by_name(name):
-            return item.json(), 200  # type: ignore
+            return item.json(), 200
         return {"message": "Item not found."}, 404
 
     @staticmethod

@@ -10,7 +10,7 @@ from models.user import UserModel
 from resources.item import Item, ItemList
 from resources.store import Store, StoreList
 from resources.user import UserRegister
-from security import authenitcate, identity
+from security import authenticate, identity
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///data.db"
@@ -20,7 +20,7 @@ api = Api(app)
 
 
 @app.before_first_request
-def create_tables():
+def create_tables() -> None:
     db.create_all()
 
 
@@ -30,7 +30,7 @@ app.config["JWT_EXPIRATION_DELTA"] = timedelta(seconds=60 * 30)
 # configure auth username to be an e-mail
 app.config["JWT_AUTH_USERNAME_KEY"] = "email"
 
-jwt = JWT(app, authenitcate, identity)
+jwt = JWT(app, authenticate, identity)
 
 
 @jwt.auth_response_handler
