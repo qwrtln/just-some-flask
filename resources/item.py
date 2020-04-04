@@ -1,4 +1,3 @@
-import sqlite3
 from typing import Any, Dict, Tuple, List
 
 from flask_jwt import jwt_required
