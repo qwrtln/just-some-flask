@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import bcrypt
+
 from typing import Optional
 
 from db import db
@@ -10,11 +12,11 @@ class UserModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(80))
-    password = db.Column(db.String(80))
+    hashed_password = db.Column(db.String(80))
 
     def __init__(self, email: str, password: str) -> None:
         self.email = email
-        self.password = password
+        self.hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
 
     def save_to_db(self) -> None:
         db.session.add(self)

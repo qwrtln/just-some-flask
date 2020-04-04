@@ -1,13 +1,12 @@
+import bcrypt
 from typing import Optional, Dict, Any
-
-from werkzeug.security import safe_str_cmp
 
 from models.user import UserModel
 
 
 def authenticate(email: str, password: str) -> Optional[UserModel]:
     user = UserModel.find_by_email(email)
-    if user and safe_str_cmp(user.password, password):  # type: ignore
+    if user and bcrypt.checkpw(password.encode(), user.hashed_password):
         return user
     return None
 

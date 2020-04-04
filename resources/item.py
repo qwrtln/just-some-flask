@@ -25,6 +25,7 @@ class Item(Resource):
         return {"message": "Item not found."}, 404
 
     @staticmethod
+    @jwt_required()
     def post(name: str) -> ResponseType:
         if ItemModel.find_by_name(name):
             return (
@@ -38,6 +39,7 @@ class Item(Resource):
         return item.json(), 201
 
     @staticmethod
+    @jwt_required()
     def delete(name: str) -> ResponseType:
         if item := ItemModel.find_by_name(name):
             item.delete_from_db()
@@ -45,6 +47,7 @@ class Item(Resource):
         return {"message": "Item not found."}, 404
 
     @staticmethod
+    @jwt_required()
     def put(name: str) -> ResponseType:
         data = Item.parser.parse_args()
         item = ItemModel.find_by_name(name)
@@ -59,5 +62,6 @@ class Item(Resource):
 
 class ItemList(Resource):
     @staticmethod
+    @jwt_required()
     def get() -> Tuple[Dict[str, List[Dict[str, Any]]], int]:
         return {"items": [item.json() for item in ItemModel.query.all()]}, 200

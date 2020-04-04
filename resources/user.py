@@ -1,5 +1,4 @@
 import re
-import sqlite3
 from typing import Dict, Tuple
 
 from flask_restful import Resource, reqparse

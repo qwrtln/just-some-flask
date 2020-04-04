@@ -1,3 +1,4 @@
+bcrypt
 Flask
 Flask-JWT
 Flask-RESTful
