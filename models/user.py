@@ -12,7 +12,7 @@ class UserModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(80))
-    hashed_password = db.Column(db.String(80))
+    hashed_password = db.Column(db.Bytea(60))
 
     def __init__(self, email: str, password: str) -> None:
         self.email = email
